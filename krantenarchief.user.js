@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         krantenarchief
 // @namespace    yvb
-// @version      2025-02-23
+// @version      1.0.0
 // @description
 // @author       yvesvanbroekhoven
 // @include      https://*.tijd.be/*

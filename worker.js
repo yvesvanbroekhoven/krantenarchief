@@ -1,8 +1,9 @@
-
 /**
- * Cloudflare Worker Reverse Proxy
+ * v1.0.0
+ * Cloudflare Worker Proxy
  * This script forwards requests to a target specified in the first path parameter
  * Example: https://your-worker.example.workers.dev/https://target-site.com/path
+ *
  */
 addEventListener('fetch', event => {
     event.respondWith(handleRequest(event.request));
