@@ -1,19 +1,22 @@
 // ==UserScript==
 // @name         krantenarchief
 // @namespace    yvb
-// @version      1.0.0
+// @version      1.0.1
 // @description
 // @author       yvesvanbroekhoven
 // @include      https://*.tijd.be/*
 // @include      https://*.standaard.be/*
+// @include      https://*.gva.be/*
 // @grant        none
 // ==/UserScript==
 
 (function() {
     'use strict';
 
+    window.MY_PROXY = 'https://roxy.vanbroekhoven.dev'; // Fill in your proxy URL
+
     addCustomStyles();
-    appendButtonsTijd();
+    appendButton();
     addEventListeners();
 })();
 
@@ -22,18 +25,36 @@ function addCustomStyles() {
 
     style.innerHTML = `
 [data-id="react-paywall-auth0"] { display: none; }
-.o-mainarticle .o-articlehead { position: relative; }
-.o-mainarticle .o-articlehead .bib-archive { position: absolute; top: 0; right: 0; }
+[data-testid="info-popup"],
+[data-testid="paywall-position-popup"] { display: none; }
 
-[data-testid="info-popup"] { display: none; }
+[class*="style_disable-scroll-popup"] {
+  overflow-y: auto !important;
+  position: static !important;
+  width: auto !important;
+}
+
+.krantenarchief {
+  background: #ffdb09;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 1rem 2rem;
+  position: fixed;
+  right: 0;
+  rotate: -90deg;
+  top: 50vh;
+  transform-origin: center;
+  translate: 40% 0;
+  z-index: 9999;
+}
   `;
 
     document.head.appendChild(style);
 };
 
-function appendButtonsTijd() {
-    let articleHead = getArticleHead();
-
+function appendButton() {
     const buttonTexts = {
         'default': 'bekijk archief',
         'busy': 'bezig met laden'
@@ -41,32 +62,26 @@ function appendButtonsTijd() {
 
     const btn = document.createElement('button');
     btn.innerText = buttonTexts.default;
-    btn.classList.add('bib-archive');
+    btn.classList.add('krantenarchief');
     btn.dataset.textBusy = buttonTexts.busy;
     btn.dataset.textDefault = buttonTexts.default;
 
-    articleHead.appendChild(btn);
+    document.body.appendChild(btn);
 }
 
 function addEventListeners() {
     document.body.addEventListener('click', (event) => {
-        if (!event.target.classList.contains('bib-archive')) return;
+        if (!event.target.classList.contains('krantenarchief')) return;
 
         const date = getArticleDate();
         const title = getArticleTitle();
 
         const formattedDate = new Intl.DateTimeFormat('en-GB').format(date);
-
-        const proxy = ''; // Fill in your proxy domain
-        const url = `https://antwerpen.bibliotheek.be/krantenarchief?q=${title}&facet[date][0]=${formattedDate}..${formattedDate}${getSourceParam()}`;
-
-        const link = document.createElement('a');
-        link.href = url;
-        event.target.parent.prepend(link);
+        const url = `https://bibliotheek.be/krantenarchief?q=${encodeURIComponent(title)}&facet[date][0]=${formattedDate}..${formattedDate}${getSourceParam()}`;
 
         event.target.innerText = event.target.dataset.textBusy;
 
-        fetch(proxy + url)
+        fetch(window.MY_PROXY + '/' + url)
             .then(response => response.text())
             .then(data => {
                 const parser = new DOMParser();
@@ -82,7 +97,7 @@ function addEventListeners() {
 
                 }
 
-                event.target.innerText = event.target.textDefault;
+                event.target.innerText = event.target.dataset.textDefault;
             });
     });
 }
@@ -94,6 +109,10 @@ function getArticleDate() {
         dateString = window.MEDIAHUIS?.config.article_publicationdatetime_utc;
     }
 
+    if (!dateString) {
+        dateString = document.querySelector('[datetime]').getAttribute('datetime');
+    }
+
     return new Date(dateString);
 }
 
@@ -101,7 +120,11 @@ function getArticleHead() {
     let articleHead = document.querySelector('.o-mainarticle .o-articlehead');
 
     if (!articleHead) {
-        articleHead = document.querySelector('[data-testid="article-header"]')
+        articleHead = document.querySelector('[data-testid="article-header"]');
+    }
+
+    if (!articleHead) {
+        articleHead = document.querySelector('[data-testid="article-headline"]');
     }
 
     return articleHead;
@@ -111,17 +134,27 @@ function getArticleTitle() {
     let articleTitle = window.digitalData?.page.attributes.navigationTitle;
 
     if (!articleTitle) {
-        articleTitle = window.MEDIAHUIS.config.article_title;
+        articleTitle = window.MEDIAHUIS?.config.article_title;
     }
+
+    if (!articleTitle) {
+        articleTitle = window.__NEXT_DATA__.props.pageProps.metaData.title;
+    }
+
+    articleTitle = articleTitle.replace(/\?/g, '')
 
     return articleTitle;
 }
 
 function getSourceParam() {
     switch(window.location.hostname) {
-        case 'www.tijd.be':
-            return '&facet[sourceid][3]=3';
         case 'www.standaard.be':
-            return '&facet[sourceid][2]=2';
+        case 'm.standaard.be':
+            return '&facet[sourceid][0]=2';
+        case 'www.tijd.be':
+            return '&facet[sourceid][0]=3';
+        case 'www.gva.be':
+        case 'm.gva.be':
+            return '&facet[sourceid][0]=4';
     }
 }
