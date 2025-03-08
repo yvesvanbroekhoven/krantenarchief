@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         krantenarchief
 // @namespace    yvb
-// @version      1.0.1
+// @version      1.0.2
 // @description
 // @author       yvesvanbroekhoven
 // @include      https://*.tijd.be/*
@@ -89,13 +89,20 @@ function addEventListeners() {
 
                 const link = html.querySelector('.news-archive-item__title a');
 
+                const linkClone = document.createElement('a');
+                linkClone.setAttribute('target', '_black');
+
                 if (link) {
-                    window.open(link.href.replace(window.location.protocol + '//' + window.location.hostname, 'https://antwerpen.bibliotheek.be'));
+                    linkClone.href = link.href.replace(window.location.protocol + '//' + window.location.hostname, 'https://bibliotheek.be');
+
 
                 } else {
-                    window.open(url);
+                    linkClone.href = url;
 
                 }
+
+                document.body.appendChild(linkClone);
+                linkClone.click();
 
                 event.target.innerText = event.target.dataset.textDefault;
             });
