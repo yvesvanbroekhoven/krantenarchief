@@ -13,7 +13,7 @@
 (function() {
     'use strict';
 
-    window.MY_PROXY = 'https://roxy.vanbroekhoven.dev'; // Fill in your proxy URL
+    window.MY_PROXY = ''; // Fill in your proxy URL
 
     addCustomStyles();
     appendButton();
@@ -79,33 +79,7 @@ function addEventListeners() {
         const formattedDate = new Intl.DateTimeFormat('en-GB').format(date);
         const url = `https://bibliotheek.be/krantenarchief?q=${encodeURIComponent(title)}&facet[date][0]=${formattedDate}..${formattedDate}${getSourceParam()}`;
 
-        event.target.innerText = event.target.dataset.textBusy;
-
-        fetch(window.MY_PROXY + '/' + url)
-            .then(response => response.text())
-            .then(data => {
-                const parser = new DOMParser();
-                const html = parser.parseFromString(data, 'text/html');
-
-                const link = html.querySelector('.news-archive-item__title a');
-
-                const linkClone = document.createElement('a');
-                linkClone.setAttribute('target', '_black');
-
-                if (link) {
-                    linkClone.href = link.href.replace(window.location.protocol + '//' + window.location.hostname, 'https://bibliotheek.be');
-
-
-                } else {
-                    linkClone.href = url;
-
-                }
-
-                document.body.appendChild(linkClone);
-                linkClone.click();
-
-                event.target.innerText = event.target.dataset.textDefault;
-            });
+        window.location = url;
     });
 }
 
