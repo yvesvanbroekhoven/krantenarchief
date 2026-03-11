@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         krantenarchief
 // @namespace    yvb
-// @version      1.0.2
+// @version      1.0.3
 // @description
 // @author       yvesvanbroekhoven
 // @include      https://*.tijd.be/*
 // @include      https://*.standaard.be/*
 // @include      https://*.gva.be/*
 // @grant        none
+// @run-at       document-idle
 // ==/UserScript==
 
 (function() {
