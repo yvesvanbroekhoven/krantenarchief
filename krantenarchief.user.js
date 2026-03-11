@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         krantenarchief
 // @namespace    yvb
-// @version      1.0.3
+// @version      1.0.4
 // @description
 // @author       yvesvanbroekhoven
 // @include      https://*.tijd.be/*
@@ -17,8 +17,12 @@
     window.MY_PROXY = ''; // Fill in your proxy URL
 
     addCustomStyles();
-    appendButton();
     addEventListeners();
+
+    // not sure why yet but sometimes our button gets removed again.
+    setTimeout(() => {
+        appendButton();
+    }, 2000);
 })();
 
 function addCustomStyles() {
